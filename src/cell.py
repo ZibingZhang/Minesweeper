@@ -19,12 +19,13 @@ class Cell(object):
         neighboring_flags (int): The number of neighboring flags
         minesweeper (Minesweeper): The minesweeper game object
         background_color (str): The default background color
+        text_color (str): The default text color
         disabled (bool): Is the cell disabled?
 
     Methods:
-        left_cell_press: Called when a cell is left clicked
-        right_cell_press: Called when a cell is right clicked
-        double_left_cell_press: Called when a cell is double left clicked
+        left_click: Called when a cell is left clicked
+        right_click: Called when a cell is right clicked
+        double_left_click: Called when a cell is double left clicked
         hold_down: Keeps the button pressed on left mouse click
         show_text: Shows the text of the cell
         uncover: Uncovers the cell and the surrounding cells
@@ -57,13 +58,14 @@ class Cell(object):
         self.text = tk.StringVar()
         self.button = tk.Button(parent, width=2, textvariable=self.text,
                                 command=lambda: self.hold_down())
-        self.button.bind("<Button-1>", lambda event: self.left_cell_press())
-        self.button.bind("<Button-3>", lambda event: self.right_cell_press())
-        self.button.bind("<Double-Button-1>", lambda event: self.double_left_cell_press())
+        self.button.bind("<Button-1>", lambda event: self.left_click())
+        self.button.bind("<Button-3>", lambda event: self.right_click())
+        self.button.bind("<Double-Button-1>", lambda event: self.double_left_click())
         self.button.grid(row=row, column=column)
         self.background_color = self.button.cget("background")
+        self.text_color = self.button.cget("foreground")
 
-    def left_cell_press(self):
+    def left_click(self):
         """ Left click event handler
 
         If the cell is uncovered, not flagged, and a bomb, then the game should end.
@@ -80,7 +82,7 @@ class Cell(object):
                 self.uncover()
                 self.minesweeper.has_won()
 
-    def right_cell_press(self):
+    def right_click(self):
         """ Right click event handler
 
         If the cell is covered, it should be flagged
@@ -88,7 +90,7 @@ class Cell(object):
         if not self.disabled and self.covered:
             self.flag()
 
-    def double_left_cell_press(self):
+    def double_left_click(self):
         """ Double left click event handler
 
         If the number of neighboring cells equals then number of neighboring bombs,
@@ -115,10 +117,27 @@ class Cell(object):
         the number of neighboring cells.
         """
         if self.bomb:
+            self.button.config(foreground=self.text_color)
             self.text.set("*")
         elif self.neighboring_bombs == 0:
             self.text.set("")
         else:
+            if self.neighboring_bombs == 1:
+                self.button.config(foreground="blue")
+            elif self.neighboring_bombs == 2:
+                self.button.config(foreground="green")
+            elif self.neighboring_bombs == 3:
+                self.button.config(foreground="red")
+            elif self.neighboring_bombs == 4:
+                self.button.config(foreground="#800080")  # purple
+            elif self.neighboring_bombs == 5:
+                self.button.config(foreground="black")
+            elif self.neighboring_bombs == 6:
+                self.button.config(foreground="#800000")  # maroon
+            elif self.neighboring_bombs == 7:
+                self.button.config(foreground="#808080")  # gray
+            elif self.neighboring_bombs == 8:
+                self.button.config(foreground="#40E0D0")  # turquoise
             self.text.set(self.neighboring_bombs)
 
     def uncover(self):

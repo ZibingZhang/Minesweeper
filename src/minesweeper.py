@@ -41,9 +41,12 @@ class Minesweeper(object):
 
     PAD_X = 10
     PAD_Y = 10
-    WIDTH = 9
-    HEIGHT = 9
-    BOMBS = 10
+    # ROWS = 9
+    # COLUMNS = 9
+    # BOMBS = 10
+    ROWS = 16
+    COLUMNS = 30
+    BOMBS = 99
 
     def __init__(self, root):
         """ Initializes the object
@@ -89,9 +92,9 @@ class Minesweeper(object):
         Initializes the cells into a 2D array. Each cell is a button, geometrically displayed
         as a grid.
         """
-        for row in range(self.WIDTH):
+        for row in range(self.ROWS):
             self.cells.append([])
-            for column in range(self.HEIGHT):
+            for column in range(self.COLUMNS):
                 button = Cell(self, self.top, row, column)
                 self.cells[row].append(button)
 
@@ -103,8 +106,8 @@ class Minesweeper(object):
         self.menu_bar.add_cascade(label="File", menu=file_menu)
 
     def reset(self):
-        for row in range(self.WIDTH):
-            for column in range(self.HEIGHT):
+        for row in range(self.ROWS):
+            for column in range(self.COLUMNS):
                 self.cells[row][column].reset()
 
         self.generated_board = False
@@ -123,8 +126,8 @@ class Minesweeper(object):
         bombs = self.BOMBS
 
         while bombs > 0:
-            row = randint(0, self.WIDTH-1)
-            column = randint(0, self.HEIGHT-1)
+            row = randint(0, self.ROWS-1)
+            column = randint(0, self.COLUMNS-1)
 
             if not self.cells[row][column].bomb and \
                     ((row-r)**2 + (column-c)**2)**0.5 > 1.5:
@@ -190,8 +193,8 @@ class Minesweeper(object):
 
         Removes all flags, presses all cells down, and displays all the cells.
         """
-        for row in range(self.WIDTH):
-            for column in range(self.HEIGHT):
+        for row in range(self.ROWS):
+            for column in range(self.COLUMNS):
                 self.cells[row][column].show()
 
         self.game_over = True
@@ -208,18 +211,18 @@ class Minesweeper(object):
         """ Ends the game when the user has won
 
         """
-        total = self.WIDTH*self.HEIGHT
+        total = self.ROWS*self.COLUMNS
 
-        for row in range(self.WIDTH):
-            for column in range(self.HEIGHT):
+        for row in range(self.ROWS):
+            for column in range(self.COLUMNS):
                 if self.cells[row][column].bomb:
                     total -= 1
                 elif not self.cells[row][column].covered:
                     total -= 1
 
         if total == 0:
-            for row in range(self.WIDTH):
-                for column in range(self.HEIGHT):
+            for row in range(self.ROWS):
+                for column in range(self.COLUMNS):
                     if self.cells[row][column].bomb and not self.cells[row][column].flagged:
                         self.cells[row][column].flag()
 
