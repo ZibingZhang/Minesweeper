@@ -47,21 +47,25 @@ class Cell(object):
                              command=lambda: self.hold_down())
         self.button.bind("<Button-1>", lambda event: self.left_cell_press())
         self.button.bind("<Button-3>", lambda event: self.right_cell_press())
-        
+        self.button.bind("<Double-Button-1>", lambda event: self.double_left_cell_press())
         self.button.grid(row=row, column=column)
 
         self.background_color = self.button.cget("background")
 
     def left_cell_press(self):
         if self.covered and not self.flagged:
-            self.uncover()
+            if self.bomb:
+                self.minesweeper.end_game()
+            else:
+                self.uncover()
 
     def right_cell_press(self):
         if self.covered:
             self.flag()
 
     def double_left_cell_press(self):
-        pass
+        if self.neighboring_flags == self.neighboring_bombs:
+            self.minesweeper.uncover_neighbors(self.row, self.column)
 
     def hold_down(self):
         if not self.flagged:
@@ -76,19 +80,31 @@ class Cell(object):
             self.text.set(int(self.neighboring_bombs))
 
     def uncover(self):
-        self.covered = False
-        self.hold_down()
-        self.show_text()
-        if self.neighboring_bombs == 0:
-            self.minesweeper.uncover_neighbor(self.row, self.column)
+        if not self.flagged:
+            self.covered = False
+            self.hold_down()
+            self.show_text()
+            if self.neighboring_bombs == 0:
+                self.minesweeper.uncover_neighbors(self.row, self.column)
 
     def flag(self):
         if not self.flagged:
             self.flagged = True
             self.button.config(background="red")
+            self.minesweeper.flag_neighbors(self.row, self.column)
+            self.minesweeper.alter_counter(-1)
         else:
             self.flagged = False
             self.button.config(background=self.background_color)
+            self.minesweeper.unflag_neighbors(self.row, self.column)
+            self.minesweeper.alter_counter(1)
+
+    def show(self):
+        if self.flagged:
+            self.flag()
+        self.covered = False
+        self.hold_down()
+        self.show_text()
 
 
 class Minesweeper(object):
@@ -114,10 +130,10 @@ class Minesweeper(object):
     Methods:
         init_cells: Initializes the 2D array of cells
         generate_board: Randomly generates the bombs and updates the 2D cell array accordingly
-        add_bomb_count: A helper function to facilitate adding to the neighboring bombs count of a Cell
-        add_flag_count: A helper function to facilitate adding to the neighboring flags count of a Cell
         display_board: A testing function, shows the text on each Cell
-        uncover_neighbor: Uncovers neighboring cells
+        uncover_neighbors: Uncovers neighboring cells
+        flag_neighbors: Adds one to neighboring cells flag counters
+        unflag_neighbors: Removes one from neighboring cells flag counters
     """
 
     PAD_X = 10
@@ -165,29 +181,19 @@ class Minesweeper(object):
             if not self.cells[row][column].bomb:
                 self.cells[row][column].bomb = True
                 for i, j in product((-1, 1, 0), (-1, 1, 0)):
-                    self.add_bomb_count(row, column, i, j)
+                    try:
+                        if row + i >= 0 and column + j >= 0:
+                            self.cells[row + i][column + j].neighboring_bombs += 1
+                    except (TypeError, IndexError):
+                        pass
                 bombs -= 1
-
-    def add_bomb_count(self, row, column, i, j):
-        try:
-            if row+i >= 0 and column+j >= 0:
-                self.cells[row+i][column+j].neighboring_bombs += 1
-        except (TypeError, IndexError):
-            pass
-
-    def add_flag_count(self, row, column, i, j):
-        try:
-            if row+i >= 0 and column+j >= 0:
-                self.cells[row+i][column+j].neighboring_flags += 1
-        except (TypeError, IndexError):
-            pass
 
     def display_board(self):
         for row in range(self.WIDTH):
             for column in range(self.HEIGHT):
                 self.cells[row][column].show_text()
 
-    def uncover_neighbor(self, row, column):
+    def uncover_neighbors(self, row, column):
         for i, j in product((-1, 0, 1), (-1, 0, 1)):
             try:
                 if self.cells[row + i][column + j].covered and \
@@ -196,6 +202,29 @@ class Minesweeper(object):
             except (TypeError, IndexError):
                 pass
 
+    def flag_neighbors(self, row, column):
+        for i, j in product((-1, 0, 1), (-1, 0, 1)):
+            try:
+                if row + i >= 0 and column + j >= 0:
+                    self.cells[row + i][column + j].neighboring_flags += 1
+            except (TypeError, IndexError):
+                pass
+
+    def unflag_neighbors(self, row, column):
+        for i, j in product((-1, 0, 1), (-1, 0, 1)):
+            try:
+                if row + i >= 0 and column + j >= 0:
+                    self.cells[row + i][column + j].neighboring_flags -= 1
+            except (TypeError, IndexError):
+                pass
+
+    def end_game(self):
+        for row in range(self.WIDTH):
+            for column in range(self.HEIGHT):
+                self.cells[row][column].show()
+
+    def alter_counter(self, increment):
+        self.bombs_left.set(str(int(self.bombs_left.get()) + increment))
 
 root = Tk()
 minesweeper = Minesweeper(root)
