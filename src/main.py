@@ -10,51 +10,115 @@ class Cell(object):
     other information regarding the cell.
 
     Attributes:
+        row (int): The row of the cell
+        column (int): The column of the cell
         text (StringVar): The text displayed on the cell
         button (Button): A button widget representing the cell
         bomb (bool): Is the cell a bomb?
-        flag (bool): Is the cell flagged?
-        hidden (bool): Is the cell hidden?
+        flagged (bool): Is the cell flagged?
+        covered (bool): Is the cell hidden?
         neighboring_bombs (int): The number of neighboring bombs
         neighboring_flags (int): The number of neighboring flags
         minesweeper (Minesweeper): The minesweeper game object
+        background_color (str): The default background color
 
     Methods:
+        left_cell_press: Called when a cell is left clicked
+        right_cell_press: Called when a cell is right clicked
+        double_left_cell_press: Called when a cell is double left clicked
         hold_down: Keeps the button pressed on left mouse click
         show_text: Shows the text of the cell
         uncover: Uncovers the cell
+        flag: "Flags" the cell by making it red
     """
+
     def __init__(self, minesweeper, parent, row, column):
+        self.row = row
+        self.column = column
         self.text = StringVar()
         self.bomb = False
-        self.flag = False
-        self.hidden = True
+        self.flagged = False
+        self.covered = True
         self.neighboring_bombs = 0
         self.neighboring_flags = 0
         self.minesweeper = minesweeper
 
         self.button = Button(parent, width=2, textvariable=self.text,
                              command=lambda: self.hold_down())
-        self.button.bind("<Button-1>",
-                         lambda event, row=row, column=column: self.minesweeper.left_cell_press(row, column))
-        self.button.bind("<Button-3>",
-                         lambda event, row=row, column=column: self.minesweeper.right_cell_press(row, column))
+        self.button.bind("<Button-1>", lambda event: self.left_cell_press())
+        self.button.bind("<Button-3>", lambda event: self.right_cell_press())
+        
         self.button.grid(row=row, column=column)
 
+        self.background_color = self.button.cget("background")
+
+    def left_cell_press(self):
+        if self.covered and not self.flagged:
+            self.uncover()
+
+    def right_cell_press(self):
+        if self.covered:
+            self.flag()
+
+    def double_left_cell_press(self):
+        pass
+
     def hold_down(self):
-        self.button.config(relief=SUNKEN)
+        if not self.flagged:
+            self.button.config(relief=SUNKEN)
 
     def show_text(self):
         if self.bomb:
             self.text.set("*")
+        elif self.neighboring_bombs == 0:
+            self.text.set("")
         else:
             self.text.set(int(self.neighboring_bombs))
 
     def uncover(self):
+        self.covered = False
+        self.hold_down()
         self.show_text()
+        if self.neighboring_bombs == 0:
+            self.minesweeper.uncover_neighbor(self.row, self.column)
+
+    def flag(self):
+        if not self.flagged:
+            self.flagged = True
+            self.button.config(background="red")
+        else:
+            self.flagged = False
+            self.button.config(background=self.background_color)
 
 
 class Minesweeper(object):
+    """ The minesweeper game.
+
+    The minesweeper game. It includes all the widgets for the GUI.
+
+    Class Attributes:
+        PAD_X (int): The amount of horizontal padding for the top and bottom half frames
+        PAD_Y (int): The amount of vertical padding for the top and bottom half frames
+        WIDTH (int): The number of cells, horizontally, for the minesweeper game
+        HEIGHT (int): The number of cells, vertically, for the minesweeper game
+        BOMBS (int): The number of bombs on the board
+
+    Instance Attributes:
+        root (Tk): The root window
+        top (Frame): The top half of the window, the part where the game is played
+        bottom (Frame): The bottom half of the window, the part where information is displayed
+        bombs_left (StringVar): The number of bombs left
+        bombs_left_label (Label): The widget where the number of bombs left is displayed
+        cells (List-of (List-of Cell)): 2D array of all the Cell objects
+
+    Methods:
+        init_cells: Initializes the 2D array of cells
+        generate_board: Randomly generates the bombs and updates the 2D cell array accordingly
+        add_bomb_count: A helper function to facilitate adding to the neighboring bombs count of a Cell
+        add_flag_count: A helper function to facilitate adding to the neighboring flags count of a Cell
+        display_board: A testing function, shows the text on each Cell
+        uncover_neighbor: Uncovers neighboring cells
+    """
 
     PAD_X = 10
     PAD_Y = 10
@@ -74,32 +138,22 @@ class Minesweeper(object):
 
         # Footer
         self.bombs_left = StringVar()
-        self.score = Label(self.bottom, textvariable=self.bombs_left)
+        self.bombs_left_label = Label(self.bottom, textvariable=self.bombs_left)
         self.bombs_left.set("16")
-        self.score.pack()
+        self.bombs_left_label.pack()
 
         # Tkinter Board
         self.cells = []
         self.init_cells()
 
         self.generate_board()
-        self.display_board()
 
     def init_cells(self):
         for row in range(self.WIDTH):
             self.cells.append([])
-
             for column in range(self.HEIGHT):
-
                 button = Cell(self, self.top, row, column)
                 self.cells[row].append(button)
-
-    def left_cell_press(self, row, column):
-        self.cells[row][column].uncover()
-        print("left", row, column)
-
-    def right_cell_press(self, row, column):
-        print("right", row, column)
 
     def generate_board(self):
         bombs = self.BOMBS
@@ -111,13 +165,20 @@ class Minesweeper(object):
             if not self.cells[row][column].bomb:
                 self.cells[row][column].bomb = True
                 for i, j in product((-1, 1, 0), (-1, 1, 0)):
-                    self.add_count(row, column, i, j)
+                    self.add_bomb_count(row, column, i, j)
                 bombs -= 1
 
-    def add_count(self, row, column, i, j):
+    def add_bomb_count(self, row, column, i, j):
         try:
             if row+i >= 0 and column+j >= 0:
                 self.cells[row+i][column+j].neighboring_bombs += 1
+        except (TypeError, IndexError):
+            pass
+
+    def add_flag_count(self, row, column, i, j):
+        try:
+            if row+i >= 0 and column+j >= 0:
+                self.cells[row+i][column+j].neighboring_flags += 1
         except (TypeError, IndexError):
             pass
 
@@ -126,8 +187,14 @@ class Minesweeper(object):
             for column in range(self.HEIGHT):
                 self.cells[row][column].show_text()
 
-
-
+    def uncover_neighbor(self, row, column):
+        for i, j in product((-1, 0, 1), (-1, 0, 1)):
+            try:
+                if self.cells[row + i][column + j].covered and \
+                        row + i >= 0 and column + j >= 0:
+                    self.cells[row + i][column + j].uncover()
+            except (TypeError, IndexError):
+                pass
 
 
 root = Tk()
