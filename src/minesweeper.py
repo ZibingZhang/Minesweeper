@@ -45,8 +45,11 @@ class Minesweeper(object):
     # COLUMNS = 9
     # BOMBS = 10
     ROWS = 16
-    COLUMNS = 30
-    BOMBS = 99
+    COLUMNS = 16
+    BOMBS = 40
+    # ROWS = 16
+    # COLUMNS = 30
+    # BOMBS = 99
 
     def __init__(self, root):
         """ Initializes the object
@@ -55,6 +58,7 @@ class Minesweeper(object):
         """
         # Two halves of the screen
         self.root = root
+        self.root.title("Minesweeper")
         self.root.resizable(False, False)
         self.top = tk.Frame(root, padx=self.PAD_X, pady=self.PAD_Y)
         self.top.pack(side=tk.TOP)
@@ -83,7 +87,7 @@ class Minesweeper(object):
         self.bind_shortcuts()
 
     def bind_shortcuts(self):
-        self.root.bind("<Control-q>", lambda event: self.root.quit())
+        self.root.bind("<Control-q>", lambda event: self.root.destroy())
         self.root.bind("<Control-r>", lambda event: self.reset())
 
     def init_cells(self):
@@ -102,7 +106,7 @@ class Minesweeper(object):
         file_menu = tk.Menu(self.menu_bar, tearoff=0)
         file_menu.add_command(label="New", command=self.reset)
         file_menu.add_separator()
-        file_menu.add_command(label="Exit", command=quit)
+        file_menu.add_command(label="Exit", command=self.root.destroy)
         self.menu_bar.add_cascade(label="File", menu=file_menu)
 
     def reset(self):

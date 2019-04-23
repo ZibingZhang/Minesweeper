@@ -72,13 +72,13 @@ class Cell(object):
         Otherwise the cell should be uncovered.
         """
 
-        if not self.disabled and not self.flagged:
+        if not self.disabled and not self.flagged and self.covered:
             if not self.minesweeper.generated_board:
                 self.minesweeper.generate_board(self.row, self.column)
                 self.uncover()
             elif self.bomb:
                 self.minesweeper.end_game()
-            elif self.covered:
+            else:
                 self.uncover()
                 self.minesweeper.has_won()
 
