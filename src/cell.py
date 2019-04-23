@@ -197,4 +197,3 @@ class Cell(object):
         self.neighboring_flags = 0
 
         self.button.config(relief=tk.RAISED, background=self.background_color, state=tk.NORMAL)
-        self.minesweeper.bombs_left.set(self.minesweeper.BOMBS)

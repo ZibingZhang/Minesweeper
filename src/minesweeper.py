@@ -12,11 +12,11 @@ class Minesweeper(object):
     Class Attributes:
         PAD_X (int): The amount of horizontal padding for the top and bottom half frames
         PAD_Y (int): The amount of vertical padding for the top and bottom half frames
-        WIDTH (int): The number of cells, horizontally, for the minesweeper game
-        HEIGHT (int): The number of cells, vertically, for the minesweeper game
-        BOMBS (int): The number of bombs on the board
 
     Instance Attributes:
+        rows (int): The number of cells, vertically, for the minesweeper game
+        columns (int): The number of cells, horizontally, for the minesweeper game
+        bombs (int): The number of bombs on the board
         root (Tk): The root window
         top (Frame): The top half of the window, the part where the game is played
         bottom (Frame): The bottom half of the window, the part where information is displayed
@@ -41,21 +41,17 @@ class Minesweeper(object):
 
     PAD_X = 10
     PAD_Y = 10
-    # ROWS = 9
-    # COLUMNS = 9
-    # BOMBS = 10
-    ROWS = 16
-    COLUMNS = 16
-    BOMBS = 40
-    # ROWS = 16
-    # COLUMNS = 30
-    # BOMBS = 99
 
     def __init__(self, root):
         """ Initializes the object
 
         :param root: The root window
         """
+        # Board size
+        self.rows = 9
+        self.columns = 9
+        self.bombs = 10
+
         # Two halves of the screen
         self.root = root
         self.root.title("Minesweeper")
@@ -68,7 +64,7 @@ class Minesweeper(object):
         # Footer
         self.bombs_left = tk.StringVar()
         self.bombs_left_label = tk.Label(self.bottom, textvariable=self.bombs_left)
-        self.bombs_left.set(str(self.BOMBS))
+        self.bombs_left.set(str(self.bombs))
         self.bombs_left_label.pack()
 
         # Tkinter Board
@@ -89,6 +85,30 @@ class Minesweeper(object):
     def bind_shortcuts(self):
         self.root.bind("<Control-q>", lambda event: self.root.destroy())
         self.root.bind("<Control-r>", lambda event: self.reset())
+        self.root.bind("<Control-z>", lambda event: self.size_small())
+        self.root.bind("<Control-x>", lambda event: self.size_medium())
+        self.root.bind("<Control-c>", lambda event: self.size_large())
+
+    def size_small(self):
+        self.rows = 9
+        self.columns = 9
+        self.bombs = 10
+        self.init_cells()
+        self.bombs_left.set(self.bombs)
+
+    def size_medium(self):
+        self.rows = 16
+        self.columns = 16
+        self.bombs = 40
+        self.init_cells()
+        self.bombs_left.set(self.bombs)
+
+    def size_large(self):
+        self.rows = 16
+        self.columns = 30
+        self.bombs = 99
+        self.init_cells()
+        self.bombs_left.set(self.bombs)
 
     def init_cells(self):
         """ Initializes the cells
@@ -96,9 +116,15 @@ class Minesweeper(object):
         Initializes the cells into a 2D array. Each cell is a button, geometrically displayed
         as a grid.
         """
-        for row in range(self.ROWS):
+        for row in self.cells:
+            for cell in row:
+                cell.button.grid_forget()
+                cell.button.destroy()
+
+        self.cells = []
+        for row in range(self.rows):
             self.cells.append([])
-            for column in range(self.COLUMNS):
+            for column in range(self.columns):
                 button = Cell(self, self.top, row, column)
                 self.cells[row].append(button)
 
@@ -110,12 +136,13 @@ class Minesweeper(object):
         self.menu_bar.add_cascade(label="File", menu=file_menu)
 
     def reset(self):
-        for row in range(self.ROWS):
-            for column in range(self.COLUMNS):
+        for row in range(self.rows):
+            for column in range(self.columns):
                 self.cells[row][column].reset()
 
         self.generated_board = False
         self.game_over = False
+        self.bombs_left.set(self.bombs)
 
     def generate_board(self, r, c):
         """ Generates a board
@@ -127,11 +154,11 @@ class Minesweeper(object):
         """
         self.generated_board = True
 
-        bombs = self.BOMBS
+        bombs = self.bombs
 
         while bombs > 0:
-            row = randint(0, self.ROWS-1)
-            column = randint(0, self.COLUMNS-1)
+            row = randint(0, self.rows-1)
+            column = randint(0, self.columns-1)
 
             if not self.cells[row][column].bomb and \
                     ((row-r)**2 + (column-c)**2)**0.5 > 1.5:
@@ -197,8 +224,8 @@ class Minesweeper(object):
 
         Removes all flags, presses all cells down, and displays all the cells.
         """
-        for row in range(self.ROWS):
-            for column in range(self.COLUMNS):
+        for row in range(self.rows):
+            for column in range(self.columns):
                 self.cells[row][column].show()
 
         self.game_over = True
@@ -215,18 +242,18 @@ class Minesweeper(object):
         """ Ends the game when the user has won
 
         """
-        total = self.ROWS*self.COLUMNS
+        total = self.rows*self.columns
 
-        for row in range(self.ROWS):
-            for column in range(self.COLUMNS):
+        for row in range(self.rows):
+            for column in range(self.columns):
                 if self.cells[row][column].bomb:
                     total -= 1
                 elif not self.cells[row][column].covered:
                     total -= 1
 
         if total == 0:
-            for row in range(self.ROWS):
-                for column in range(self.COLUMNS):
+            for row in range(self.rows):
+                for column in range(self.columns):
                     if self.cells[row][column].bomb and not self.cells[row][column].flagged:
                         self.cells[row][column].flag()
 
