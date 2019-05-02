@@ -95,6 +95,7 @@ class Minesweeper(object):
         self.bombs = 10
         self.init_cells()
         self.bombs_left.set(self.bombs)
+        self.reset()
 
     def size_medium(self):
         self.rows = 16
@@ -102,6 +103,7 @@ class Minesweeper(object):
         self.bombs = 40
         self.init_cells()
         self.bombs_left.set(self.bombs)
+        self.reset()
 
     def size_large(self):
         self.rows = 16
@@ -109,6 +111,7 @@ class Minesweeper(object):
         self.bombs = 99
         self.init_cells()
         self.bombs_left.set(self.bombs)
+        self.reset()
 
     def init_cells(self):
         """ Initializes the cells
@@ -131,6 +134,14 @@ class Minesweeper(object):
     def init_menu_bar(self):
         file_menu = tk.Menu(self.menu_bar, tearoff=0)
         file_menu.add_command(label="New", command=self.reset)
+
+        # create more pulldown menus
+        size_menu = tk.Menu(file_menu, tearoff=0)
+        size_menu.add_command(label="Small", command=self.size_small)
+        size_menu.add_command(label="Medium", command=self.size_medium)
+        size_menu.add_command(label="Large", command=self.size_large)
+        file_menu.add_cascade(label="Size", menu=size_menu)
+
         file_menu.add_separator()
         file_menu.add_command(label="Exit", command=self.root.destroy)
         self.menu_bar.add_cascade(label="File", menu=file_menu)

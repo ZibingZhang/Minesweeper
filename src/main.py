@@ -22,6 +22,7 @@ class Solver(object):
     def bind_shortcuts(self):
         self.root.bind("<Key-1>", lambda event: self.double_click_complete())
         self.root.bind("<Key-2>", lambda event: self.flag_complete())
+        self.root.bind("<Key-3>", lambda event: self.flag_patterns())
         self.root.bind("<s>", lambda event: self.solve())
 
         self.root.bind("<t>", lambda event: self.test_1())
@@ -104,6 +105,12 @@ class Solver(object):
                     for cell in neighboring_covered_cells:
                         cell.flag()
                         self.action = True
+
+    def flag_patterns(self):
+        """
+        Flag basic patterns, such as the "1-2-1" pattern.
+        """
+        pass
 
     def test_1(self):
         """
