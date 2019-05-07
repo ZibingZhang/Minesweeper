@@ -36,7 +36,6 @@ class Cell(object):
             row: The row number.
             column: The column number.
         """
-
         self.minesweeper = minesweeper
         self.row = row
         self.column = column
@@ -61,7 +60,6 @@ class Cell(object):
             If the cell is "blank", uncover the surrounding cells.
             If the game is won, end the game appropriately.
         """
-
         if not self.minesweeper.generated_board:
             self.minesweeper.generate_board(self.row, self.column)
 
@@ -86,7 +84,6 @@ class Cell(object):
         If the cell is covered, flag the cell.
         If the cell is flagged, remove the flag.
         """
-
         if self.state == "uncovered":
             pass
         elif self.state == "covered":
@@ -102,7 +99,6 @@ class Cell(object):
             if the number of neighboring cells equals then number of neighboring bombs,
             uncover the neighboring cells.
         """
-
         if self.state == "covered" or self.state == "flagged":
             pass
         elif self.state == "uncovered":
@@ -117,7 +113,6 @@ class Cell(object):
         The text displayed varies on whether or not the cell is a bomb and
         the number of neighboring cells.
         """
-
         neighboring_bombs = self.minesweeper.neighboring_bombs(self.row, self.column)
         self.button.config(relief=tk.SUNKEN)
 
@@ -140,7 +135,6 @@ class Cell(object):
         Returns:
             str: The color associated with the given number.
         """
-
         return {1: "blue",             # blue
                 2: "green",            # green
                 3: "red",              # red
@@ -152,21 +146,18 @@ class Cell(object):
 
     def flag(self):
         """ Flags the cell. """
-
         self.state = "flagged"
         self.button.config(background="red", state=tk.DISABLED)
         self.minesweeper.alter_counter(-1)
 
     def remove_flag(self):
         """ Removes the flag. """
-
         self.state = "covered"
         self.button.config(background="SystemButtonFace", state=tk.NORMAL)
         self.minesweeper.alter_counter(1)
 
     def reset(self):
         """ Resets the cell. """
-
         self.text.set("")
         self.state = "covered"
         self.is_bomb = False

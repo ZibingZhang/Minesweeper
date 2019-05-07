@@ -29,12 +29,7 @@ class Minesweeper(object):
 
     Methods:
         bind_shortcuts: Binds the appropriate keyboard shortcuts.
-
-        !!! to be redesigned and rewritten !!!
-        size_small
-        size_medium
-        size_large
-
+        resize: Resize the board.
         generate_cells: Generates the 2D array of cells.
         create_menu_bar: Creates the menu bar.
         new: Resets the game.
@@ -47,7 +42,6 @@ class Minesweeper(object):
         has_won: Has the user won the game?
         alter_counter: Updates the counter.
     """
-
     PAD_X = 10
     PAD_Y = 10
 
@@ -57,7 +51,6 @@ class Minesweeper(object):
         Args:
             root: The root window
         """
-
         # Board size
         self.rows = 9
         self.columns = 9
@@ -85,7 +78,11 @@ class Minesweeper(object):
 
         # Tkinter Board
         self.cells = []
-        self.generate_cells()
+        for row in range(self.rows):
+            self.cells.append([])
+            for column in range(self.columns):
+                button = Cell(self, self.top, row, column)
+                self.cells[row].append(button)
 
         self.generated_board = False
         self.game_over = False
@@ -102,66 +99,48 @@ class Minesweeper(object):
         Ctrl-x starts a new game with a medium sized board.
         Ctrl-c starts a new game with a large sized board.
         """
-
         self.root.bind("<Control-q>", lambda event: self.root.destroy())
         self.root.bind("<Control-n>", lambda event: self.new())
         self.root.bind("<F2>", lambda event: self.new())
-        self.root.bind("<Control-z>", lambda event: self.size_small())
-        self.root.bind("<Control-x>", lambda event: self.size_medium())
-        self.root.bind("<Control-c>", lambda event: self.size_large())
+        self.root.bind("<Control-z>", lambda event: self.resize(9, 9, 10))
+        self.root.bind("<Control-x>", lambda event: self.resize(16, 16, 40))
+        self.root.bind("<Control-c>", lambda event: self.resize(16, 30, 99))
 
-    def size_small(self):
-        self.rows = 9
-        self.columns = 9
-        self.bombs = 10
-        self.generate_cells()
-        self.bombs_left.set(self.bombs)
-        self.new()
+    def resize(self, rows, columns, bombs):
+        """ Resize the board.
 
-    def size_medium(self):
-        self.rows = 16
-        self.columns = 16
-        self.bombs = 40
-        self.generate_cells()
-        self.bombs_left.set(self.bombs)
-        self.new()
-
-    def size_large(self):
-        self.rows = 16
-        self.columns = 30
-        self.bombs = 99
-        self.generate_cells()
-        self.bombs_left.set(self.bombs)
-        self.new()
-
-    def generate_cells(self):
-        """ Generates the 2D array of cells.
-
-        Destroys the old cells and creates a new 2D array of cells.
+        Args:
+            rows: The new number of rows.
+            columns: The new number of columns.
+            bombs: The new number of bombs.
         """
-
-        for row in self.cells:
-            for cell in row:
-                cell.button.destroy()
+        for row in range(self.rows):
+            for column in range(self.columns):
+                self.cells[row][column].button.destroy()
 
         self.cells = []
+        self.rows = rows
+        self.columns = columns
+        self.bombs = bombs
+        self.bombs_left.set(self.bombs)
+
         for row in range(self.rows):
             self.cells.append([])
             for column in range(self.columns):
-                button = Cell(self, self.top, row, column)
-                self.cells[row].append(button)
+                self.cells[row].append(Cell(self, self.top, row, column))
+
+        self.new()
 
     def create_menu_bar(self):
         """ Creates the menu bar. """
-
         file_menu = tk.Menu(self.menu_bar, tearoff=0)
         file_menu.add_command(label="New", command=self.new)
 
         # create more pull down menus
         size_menu = tk.Menu(file_menu, tearoff=0)
-        size_menu.add_command(label="Small", command=self.size_small)
-        size_menu.add_command(label="Medium", command=self.size_medium)
-        size_menu.add_command(label="Large", command=self.size_large)
+        size_menu.add_command(label="Small", command=lambda: self.resize(9, 9, 10))
+        size_menu.add_command(label="Medium", command=lambda: self.resize(16, 16, 40))
+        size_menu.add_command(label="Large", command=lambda: self.resize(16, 30, 99))
         file_menu.add_cascade(label="Size", menu=size_menu)
 
         file_menu.add_separator()
@@ -170,7 +149,6 @@ class Minesweeper(object):
 
     def new(self):
         """ Resets the game. """
-
         for row in range(self.rows):
             for column in range(self.columns):
                 self.cells[row][column].reset()
@@ -188,9 +166,7 @@ class Minesweeper(object):
             initial_row: The row of the cell that should not border a bomb.
             initial_column: The column of the cell that should not border a bomb.
         """
-
         self.generated_board = True
-
         bombs = self.bombs
 
         while bombs > 0:
@@ -211,7 +187,6 @@ class Minesweeper(object):
             row: The row of the cell whose neighbors are being uncovered.
             column: The column of the cell whose neighbors are being uncovered.
         """
-
         for row_offset, column_offset in product((-1, 0, 1), (-1, 0, 1)):
             try:
                 if self.cells[row + row_offset][column + column_offset].state == "covered" and \
@@ -230,7 +205,6 @@ class Minesweeper(object):
         Returns:
             int: The number of neighboring bombs.
         """
-
         bombs = 0
         for row_offset, column_offset in product((0, -1, 1), (0, -1, 1)):
             try:
@@ -252,7 +226,6 @@ class Minesweeper(object):
         Returns:
             int: The number of neighboring flags.
         """
-
         flags = 0
         for row_offset, column_offset in product((0, -1, 1), (0, -1, 1)):
             try:
@@ -269,7 +242,6 @@ class Minesweeper(object):
 
         Removes all flags, presses all cells down, and displays all the cells.
         """
-
         for row in range(self.rows):
             for column in range(self.columns):
                 self.cells[row][column].show_text()
@@ -284,7 +256,6 @@ class Minesweeper(object):
         Args:
             increment: The change to the counter.
         """
-
         self.bombs_left.set(str(int(self.bombs_left.get()) + increment))
 
     def has_won(self):
@@ -296,7 +267,6 @@ class Minesweeper(object):
         Returns:
             bool: Has the user won the game?
         """
-
         total = self.rows*self.columns
 
         for row in range(self.rows):
