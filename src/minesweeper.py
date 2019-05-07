@@ -21,10 +21,10 @@ class Minesweeper(object):
         top (Frame): The top half of the window, the part where the game is played.
         bottom (Frame): The bottom half of the window, the part where information is displayed.
         menu_bar (Menu): The menu bar.
-        bombs_left (StringVar): The number of bombs left.
-        bombs_left_label (Label): The widget where the number of bombs left is displayed.
+        message (StringVar): The message being displayed at the bottom.
+        message_label (Label): The widget where the number of bombs left is displayed.
         cells (List-of (List-of Cell)): 2D array of all the Cell objects.
-        generated_board (bool): Has the board been generated yet?
+        generated_bombs (bool): Has the bombs been generated yet?
         game_over (bool): Is the game over?
 
     Methods:
@@ -33,14 +33,14 @@ class Minesweeper(object):
         generate_cells: Generates the 2D array of cells.
         create_menu_bar: Creates the menu bar.
         new: Resets the game.
-        generate_board: Randomly generates the bombs and updates the 2D cell array accordingly.
+        generate_bombs: Randomly generates the bombs and updates the 2D cell array accordingly.
         uncover_neighbors: Uncovers neighboring cells.
         neighboring_bombs: Counts the number of neighboring bombs.
         neighboring_flags: Counts the number of neighboring flags.
-        lose_game: Lose the game.
-        win_game: Win the game.
-        has_won: Has the user won the game?
         alter_counter: Updates the counter.
+        has_won: Has the user won the game?
+        win_game: Win the game.
+        lose_game: Lose the game.
     """
     PAD_X = 10
     PAD_Y = 10
@@ -71,10 +71,10 @@ class Minesweeper(object):
         self.root.config(menu=self.menu_bar)
 
         # Footer
-        self.bombs_left = tk.StringVar()
-        self.bombs_left_label = tk.Label(self.bottom, textvariable=self.bombs_left)
-        self.bombs_left.set(str(self.bombs))
-        self.bombs_left_label.pack()
+        self.message = tk.StringVar()
+        self.message_label = tk.Label(self.bottom, textvariable=self.message)
+        self.message.set(str(self.bombs))
+        self.message_label.pack()
 
         # Tkinter Board
         self.cells = []
@@ -84,7 +84,7 @@ class Minesweeper(object):
                 button = Cell(self, self.top, row, column)
                 self.cells[row].append(button)
 
-        self.generated_board = False
+        self.generated_bombs = False
         self.game_over = False
 
         # Keyboard Shortcuts
@@ -106,31 +106,6 @@ class Minesweeper(object):
         self.root.bind("<Control-x>", lambda event: self.resize(16, 16, 40))
         self.root.bind("<Control-c>", lambda event: self.resize(16, 30, 99))
 
-    def resize(self, rows, columns, bombs):
-        """ Resize the board.
-
-        Args:
-            rows: The new number of rows.
-            columns: The new number of columns.
-            bombs: The new number of bombs.
-        """
-        for row in range(self.rows):
-            for column in range(self.columns):
-                self.cells[row][column].button.destroy()
-
-        self.cells = []
-        self.rows = rows
-        self.columns = columns
-        self.bombs = bombs
-        self.bombs_left.set(self.bombs)
-
-        for row in range(self.rows):
-            self.cells.append([])
-            for column in range(self.columns):
-                self.cells[row].append(Cell(self, self.top, row, column))
-
-        self.new()
-
     def create_menu_bar(self):
         """ Creates the menu bar. """
         file_menu = tk.Menu(self.menu_bar, tearoff=0)
@@ -147,17 +122,42 @@ class Minesweeper(object):
         file_menu.add_command(label="Exit", command=self.root.destroy)
         self.menu_bar.add_cascade(label="File", menu=file_menu)
 
+    def resize(self, rows, columns, bombs):
+        """ Resize the board.
+
+        Args:
+            rows: The new number of rows.
+            columns: The new number of columns.
+            bombs: The new number of bombs.
+        """
+        for row in range(self.rows):
+            for column in range(self.columns):
+                self.cells[row][column].button.destroy()
+
+        self.cells = []
+        self.rows = rows
+        self.columns = columns
+        self.bombs = bombs
+        self.message.set(self.bombs)
+
+        for row in range(self.rows):
+            self.cells.append([])
+            for column in range(self.columns):
+                self.cells[row].append(Cell(self, self.top, row, column))
+
+        self.new()
+
     def new(self):
         """ Resets the game. """
         for row in range(self.rows):
             for column in range(self.columns):
                 self.cells[row][column].reset()
 
-        self.generated_board = False
+        self.generated_bombs = False
         self.game_over = False
-        self.bombs_left.set(self.bombs)
+        self.message.set(self.bombs)
 
-    def generate_board(self, initial_row, initial_column):
+    def generate_bombs(self, initial_row, initial_column):
         """ Randomly generates the bombs and updates the 2D cell array accordingly.
 
         Generates the bombs such that they do not they do not border the first cell clicked.
@@ -166,7 +166,7 @@ class Minesweeper(object):
             initial_row: The row of the cell that should not border a bomb.
             initial_column: The column of the cell that should not border a bomb.
         """
-        self.generated_board = True
+        self.generated_bombs = True
         bombs = self.bombs
 
         while bombs > 0:
@@ -177,6 +177,16 @@ class Minesweeper(object):
                     ((row-initial_row)**2 + (column-initial_column)**2)**0.5 > 1.5:
                 self.cells[row][column].is_bomb = True
                 bombs -= 1
+        # self.generated_bombs = True
+        # self.cells[3][2].is_bomb = True
+        # self.cells[6][1].is_bomb = True
+        # self.cells[0][8].is_bomb = True
+        # self.cells[1][6].is_bomb = True
+        # self.cells[2][7].is_bomb = True
+        # self.cells[3][6].is_bomb = True
+        # self.cells[3][8].is_bomb = True
+        # self.cells[8][7].is_bomb = True
+        # self.cells[7][6].is_bomb = True
 
     def uncover_neighbors(self, row, column):
         """ Uncovers neighboring cells.
@@ -237,26 +247,17 @@ class Minesweeper(object):
                 pass
         return flags
 
-    def lose_game(self):
-        """ Lose the game.
-
-        Removes all flags, presses all cells down, and displays all the cells.
-        """
-        for row in range(self.rows):
-            for column in range(self.columns):
-                self.cells[row][column].show_text()
-                self.cells[row][column].remove_flag()
-
-        self.game_over = True
-        self.bombs_left.set("You Lose")
-
     def alter_counter(self, increment):
         """ Changes the counter by the increment to indicate the number of bombs remaining.
 
         Args:
             increment: The change to the counter.
         """
-        self.bombs_left.set(str(int(self.bombs_left.get()) + increment))
+        try:
+            self.message.set(int(self.message.get()) + increment)
+        except ValueError:
+            # Not sure why it sometimes throws errors...
+            pass
 
     def has_won(self):
         """ Has the user won the game?
@@ -288,4 +289,18 @@ class Minesweeper(object):
                 if self.cells[row][column].is_bomb and not self.cells[row][column].state == "flagged":
                     self.cells[row][column].flag()
 
-        self.bombs_left.set("You Win")
+        self.game_over = True
+        self.message.set("You Win")
+
+    def lose_game(self):
+        """ Lose the game.
+
+        Removes all flags, presses all cells down, and displays all the cells.
+        """
+        for row in range(self.rows):
+            for column in range(self.columns):
+                self.cells[row][column].show_text()
+                self.cells[row][column].remove_flag()
+
+        self.game_over = True
+        self.message.set("You Lose")

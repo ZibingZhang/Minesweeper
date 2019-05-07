@@ -60,8 +60,8 @@ class Cell(object):
             If the cell is "blank", uncover the surrounding cells.
             If the game is won, end the game appropriately.
         """
-        if not self.minesweeper.generated_board:
-            self.minesweeper.generate_board(self.row, self.column)
+        if not self.minesweeper.generated_bombs:
+            self.minesweeper.generate_bombs(self.row, self.column)
 
         if self.state == "flagged" or self.state == "uncovered":
             pass
