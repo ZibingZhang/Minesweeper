@@ -30,7 +30,6 @@ class Minesweeper(object):
     Methods:
         bind_shortcuts: Binds the appropriate keyboard shortcuts.
         resize: Resize the board.
-        generate_cells: Generates the 2D array of cells.
         create_menu_bar: Creates the menu bar.
         new: Resets the game.
         generate_bombs: Randomly generates the bombs and updates the 2D cell array accordingly.
@@ -46,20 +45,30 @@ class Minesweeper(object):
     PAD_Y = 10
 
     def __init__(self, root):
-        """ Initializes the object
+        """ Initializes the object.
+
+        Initializes the instance attributes as described above.
+        Generates the GUI components for the game, namely the two halves and the menu bar.
+            The top half includes the 2D array of buttons that represents the cells.
+            The bottom half includes the display message which indicates how many bombs are left or if the game is over.
+            The menu bar has options to restart, change the size, and exit.
+        Binds shortcuts to various key combinations as described below.
 
         Args:
-            root: The root window
+            root: The root window.
         """
+        self.root = root
+
         # Board size
         self.rows = 9
         self.columns = 9
         self.bombs = 10
 
-        # Two halves of the screen
-        self.root = root
+        # Window Settings
         self.root.title("Minesweeper")
         self.root.resizable(False, False)
+
+        # Two halves of the screen
         self.top = tk.Frame(root, padx=self.PAD_X, pady=self.PAD_Y)
         self.top.pack(side=tk.TOP)
         self.bottom = tk.Frame(root, padx=self.PAD_X, pady=self.PAD_Y)
@@ -93,11 +102,11 @@ class Minesweeper(object):
     def bind_shortcuts(self):
         """ Binds the appropriate keyboard shortcuts.
 
-        Ctrl-q exits the game.
-        Ctrl-n or F2 starts a new game.
-        Ctrl-z starts a new game with a small sized board.
-        Ctrl-x starts a new game with a medium sized board.
-        Ctrl-c starts a new game with a large sized board.
+        <Ctrl-q> : exits the game.
+        <Ctrl-n> : or F2 starts a new game.
+        <Ctrl-z> : starts a new game with a small sized board.
+        <Ctrl-x> : starts a new game with a medium sized board.
+        <Ctrl-c> : starts a new game with a large sized board.
         """
         self.root.bind("<Control-q>", lambda event: self.root.destroy())
         self.root.bind("<Control-n>", lambda event: self.new())
@@ -177,6 +186,9 @@ class Minesweeper(object):
                     ((row-initial_row)**2 + (column-initial_column)**2)**0.5 > 1.5:
                 self.cells[row][column].is_bomb = True
                 bombs -= 1
+
+        # Test Case
+        # -------------------------------
         # self.generated_bombs = True
         # self.cells[3][2].is_bomb = True
         # self.cells[6][1].is_bomb = True

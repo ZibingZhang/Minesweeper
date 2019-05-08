@@ -30,6 +30,9 @@ class Cell(object):
     def __init__(self, minesweeper, parent, row, column):
         """ Initializes the object.
 
+        Initializes the instance attributes as described above.
+        Creates the button widget and binds mouse events to it.
+
         Args:
             minesweeper: The Minesweeper object.
             parent: The parent widget.
