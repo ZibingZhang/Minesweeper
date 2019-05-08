@@ -175,30 +175,31 @@ class Minesweeper(object):
             initial_row: The row of the cell that should not border a bomb.
             initial_column: The column of the cell that should not border a bomb.
         """
-        self.generated_bombs = True
-        bombs = self.bombs
-
-        while bombs > 0:
-            row = randint(0, self.rows-1)
-            column = randint(0, self.columns-1)
-
-            if not self.cells[row][column].is_bomb and \
-                    ((row-initial_row)**2 + (column-initial_column)**2)**0.5 > 1.5:
-                self.cells[row][column].is_bomb = True
-                bombs -= 1
-
-        # Test Case
-        # -------------------------------
         # self.generated_bombs = True
-        # self.cells[3][2].is_bomb = True
-        # self.cells[6][1].is_bomb = True
-        # self.cells[0][8].is_bomb = True
-        # self.cells[1][6].is_bomb = True
-        # self.cells[2][7].is_bomb = True
-        # self.cells[3][6].is_bomb = True
-        # self.cells[3][8].is_bomb = True
-        # self.cells[8][7].is_bomb = True
-        # self.cells[7][6].is_bomb = True
+        # bombs = self.bombs
+        #
+        # while bombs > 0:
+        #     row = randint(0, self.rows-1)
+        #     column = randint(0, self.columns-1)
+        #
+        #     if not self.cells[row][column].is_bomb and \
+        #             ((row-initial_row)**2 + (column-initial_column)**2)**0.5 > 1.5:
+        #         self.cells[row][column].is_bomb = True
+        #         bombs -= 1
+
+        # Test Case - 3 bombs left
+        # -------------------------------
+        self.generated_bombs = True
+        self.cells[2][4].is_bomb = True
+        self.cells[3][0].is_bomb = True
+        self.cells[4][1].is_bomb = True
+        self.cells[5][2].is_bomb = True
+        self.cells[5][4].is_bomb = True
+        self.cells[5][8].is_bomb = True
+        self.cells[6][0].is_bomb = True
+        self.cells[7][0].is_bomb = True
+        self.cells[7][1].is_bomb = True
+        self.cells[7][7].is_bomb = True
 
     def uncover_neighbors(self, row, column):
         """ Uncovers neighboring cells.
@@ -227,6 +228,8 @@ class Minesweeper(object):
         Returns:
             int: The number of neighboring bombs.
         """
+        # Unable to see the number of the cell unless it is uncovered.
+        assert self.cells[row][column].state == "uncovered"
         bombs = 0
         for row_offset, column_offset in product((0, -1, 1), (0, -1, 1)):
             try:
@@ -311,6 +314,7 @@ class Minesweeper(object):
         """
         for row in range(self.rows):
             for column in range(self.columns):
+                self.cells[row][column].state = "uncovered"
                 self.cells[row][column].show_text()
                 self.cells[row][column].remove_flag()
 
