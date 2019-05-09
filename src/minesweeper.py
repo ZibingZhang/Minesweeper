@@ -60,9 +60,9 @@ class Minesweeper(object):
         self.root = root
 
         # Board size
-        self.rows = 9
-        self.columns = 9
-        self.bombs = 10
+        self.rows = 16
+        self.columns = 16
+        self.bombs = 40
 
         # Window Settings
         self.root.title("Minesweeper")
@@ -175,31 +175,77 @@ class Minesweeper(object):
             initial_row: The row of the cell that should not border a bomb.
             initial_column: The column of the cell that should not border a bomb.
         """
-        # self.generated_bombs = True
-        # bombs = self.bombs
-        #
-        # while bombs > 0:
-        #     row = randint(0, self.rows-1)
-        #     column = randint(0, self.columns-1)
-        #
-        #     if not self.cells[row][column].is_bomb and \
-        #             ((row-initial_row)**2 + (column-initial_column)**2)**0.5 > 1.5:
-        #         self.cells[row][column].is_bomb = True
-        #         bombs -= 1
-
-        # Test Case - 3 bombs left
-        # -------------------------------
         self.generated_bombs = True
-        self.cells[2][4].is_bomb = True
-        self.cells[3][0].is_bomb = True
-        self.cells[4][1].is_bomb = True
-        self.cells[5][2].is_bomb = True
-        self.cells[5][4].is_bomb = True
-        self.cells[5][8].is_bomb = True
-        self.cells[6][0].is_bomb = True
-        self.cells[7][0].is_bomb = True
-        self.cells[7][1].is_bomb = True
-        self.cells[7][7].is_bomb = True
+        bombs = self.bombs
+
+        while bombs > 0:
+            row = randint(0, self.rows-1)
+            column = randint(0, self.columns-1)
+
+            if not self.cells[row][column].is_bomb and \
+                    ((row-initial_row)**2 + (column-initial_column)**2)**0.5 > 1.5:
+                self.cells[row][column].is_bomb = True
+                bombs -= 1
+
+        # Test Case :
+        # 1 bomb left, guessing required
+        # -------------------------------
+        # self.generated_bombs = True
+        # self.cells[0][2].is_bomb = True
+        # self.cells[1][1].is_bomb = True
+        # self.cells[1][2].is_bomb = True
+        # self.cells[2][2].is_bomb = True
+        # self.cells[3][0].is_bomb = True
+        # self.cells[3][7].is_bomb = True
+        # self.cells[5][1].is_bomb = True
+        # self.cells[6][8].is_bomb = True
+        # self.cells[8][6].is_bomb = True
+        # self.cells[8][7].is_bomb = True
+
+        # Test Case :
+        # 3 bombs left
+        # ---------------------------------
+        # self.generated_bombs = True
+        # self.cells[2][4].is_bomb = True
+        # self.cells[3][0].is_bomb = True
+        # self.cells[4][1].is_bomb = True
+        # self.cells[5][2].is_bomb = True
+        # self.cells[5][4].is_bomb = True
+        # self.cells[5][8].is_bomb = True
+        # self.cells[6][0].is_bomb = True
+        # self.cells[7][0].is_bomb = True
+        # self.cells[7][1].is_bomb = True
+        # self.cells[7][7].is_bomb = True
+
+        # Test Case :
+        # 5 bombs left (right half)
+        # ---------------------------------
+        # self.generated_bombs = True
+        # self.cells[0][6].is_bomb = True
+        # self.cells[1][4].is_bomb = True
+        # self.cells[3][4].is_bomb = True
+        # self.cells[4][5].is_bomb = True
+        # self.cells[5][1].is_bomb = True
+        # self.cells[5][4].is_bomb = True
+        # self.cells[5][6].is_bomb = True
+        # self.cells[6][4].is_bomb = True
+        # self.cells[7][3].is_bomb = True
+        # self.cells[8][1].is_bomb = True
+
+        # Test Case :
+        # 7 bombs left (upper right)
+        # ---------------------------------
+        # self.generated_bombs = True
+        # self.cells[1][1].is_bomb = True
+        # self.cells[3][1].is_bomb = True
+        # self.cells[3][2].is_bomb = True
+        # self.cells[4][2].is_bomb = True
+        # self.cells[5][5].is_bomb = True
+        # self.cells[7][1].is_bomb = True
+        # self.cells[7][4].is_bomb = True
+        # self.cells[7][7].is_bomb = True
+        # self.cells[8][0].is_bomb = True
+        # self.cells[8][5].is_bomb = True
 
     def uncover_neighbors(self, row, column):
         """ Uncovers neighboring cells.
@@ -212,8 +258,8 @@ class Minesweeper(object):
         """
         for row_offset, column_offset in product((-1, 0, 1), (-1, 0, 1)):
             try:
-                if self.cells[row + row_offset][column + column_offset].state == "covered" and \
-                        row + row_offset >= 0 and column + column_offset >= 0:
+                if (self.cells[row + row_offset][column + column_offset].state == "covered" and
+                        row + row_offset >= 0 and column + column_offset >= 0):
                     self.cells[row + row_offset][column + column_offset].left_click()
             except (TypeError, IndexError):
                 pass
@@ -233,9 +279,9 @@ class Minesweeper(object):
         bombs = 0
         for row_offset, column_offset in product((0, -1, 1), (0, -1, 1)):
             try:
-                if not (row_offset == 0 and column_offset == 0) and \
-                        row + row_offset >= 0 and column + column_offset >= 0 and \
-                        self.cells[row + row_offset][column+column_offset].is_bomb:
+                if (not (row_offset == 0 and column_offset == 0) and
+                        row + row_offset >= 0 and column + column_offset >= 0 and
+                        self.cells[row + row_offset][column+column_offset].is_bomb):
                     bombs += 1
             except IndexError:
                 pass
@@ -254,9 +300,9 @@ class Minesweeper(object):
         flags = 0
         for row_offset, column_offset in product((0, -1, 1), (0, -1, 1)):
             try:
-                if not (row_offset == 0 and column_offset == 0) and \
-                        row + row_offset >= 0 and column + column_offset >= 0 and \
-                        self.cells[row + row_offset][column + column_offset].state == "flagged":
+                if (not (row_offset == 0 and column_offset == 0) and
+                        row + row_offset >= 0 and column + column_offset >= 0 and
+                        self.cells[row + row_offset][column + column_offset].state == "flagged"):
                     flags += 1
             except IndexError:
                 pass
